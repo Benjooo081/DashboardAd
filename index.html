@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="de">
 <head>
     <meta charset="UTF-8">
@@ -18,44 +17,40 @@
         .tab-active { background: #2563eb; color: white; }
         .tab-inactive { background: #e5e7eb; color: #4b5563; }
 
-```
-    /* Custom Slider Styles */
-    input[type="range"] {
-        -webkit-appearance: none;
-        width: 100%;
-        height: 8px;
-        border-radius: 5px;
-        background: linear-gradient(to right, #ef4444 0%, #eab308 50%, #22c55e 100%);
-        outline: none;
-    }
-    input[type="range"]::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        background: #2563eb;
-        cursor: pointer;
-        border: 3px solid white;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    }
-    input[type="range"]::-moz-range-thumb {
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        background: #2563eb;
-        cursor: pointer;
-        border: 3px solid white;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    }
-</style>
-```
-
+        /* Custom Slider Styles */
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: linear-gradient(to right, #ef4444 0%, #eab308 50%, #22c55e 100%);
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #2563eb;
+            cursor: pointer;
+            border: 3px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #2563eb;
+            cursor: pointer;
+            border: 3px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+    </style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen p-4 md:p-6">
     <div class="max-w-7xl mx-auto">
 
-```
     <!-- API Key Setup Modal -->
     <div id="apiKeyModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl shadow-2xl p-6 md:p-8 max-w-md w-full">
@@ -311,11 +306,11 @@
     let categoryChart = null;
     let attributesChart = null;
 
-    // Attribute Framework
+    // Attribute Framework (vollständige Arrays, keine [...] Abkürzungen)
     const ATTRIBUTES = {
-        werte: ['nachhaltigkeit', 'familie', 'individualitaet', 'erfolg_leistung', 'sicherheit', 'freiheit', 'tradition', 'innovation', 'gemeinschaft', 'gesundheit', 'authentizitaet', 'luxus', 'pragmatismus', 'abenteuer'],
-        emotional: ['humor', 'nostalgie', 'inspiration', 'vertrauen', 'ueberraschung', 'freude', 'stolz', 'neugier', 'empathie', 'aufregung', 'entspannung', 'rebellion', 'dringlichkeit', 'hoffnung'],
-        aesthetik: ['minimalistisch', 'luxurioes', 'verspielt', 'professionell', 'natuerlich', 'technologisch', 'vintage', 'urban', 'rustikal', 'elegant', 'dynamisch', 'ruhig', 'kuenstlerisch', 'dokumentarisch', 'glamouroes']
+        werte: ['nachhaltigkeit','familie','individualitaet','erfolg_leistung','sicherheit','freiheit','tradition','innovation','gemeinschaft','gesundheit','authentizitaet','luxus','pragmatismus','abenteuer'],
+        emotional: ['humor','nostalgie','inspiration','vertrauen','ueberraschung','freude','stolz','neugier','empathie','aufregung','entspannung','rebellion','dringlichkeit','hoffnung'],
+        aesthetik: ['minimalistisch','luxurioes','verspielt','professionell','natuerlich','technologisch','vintage','urban','rustikal','elegant','dynamisch','ruhig','kuenstlerisch','dokumentarisch']
     };
 
     // Init
@@ -375,7 +370,7 @@
     function loadAds() {
         const stored = localStorage.getItem('analyzed_ads');
         if (stored) {
-            ads = JSON.parse(stored);
+            try { ads = JSON.parse(stored); } catch(e){ ads = []; }
         }
     }
 
@@ -387,25 +382,16 @@
     // Tab Navigation
     function switchTab(tab) {
         currentTab = tab;
-        
-        // Hide all tabs
         document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.classList.remove('tab-active');
             btn.classList.add('tab-inactive');
         });
-        
-        // Show selected tab
         document.getElementById('tab-' + tab).classList.remove('hidden');
         document.querySelector(`[data-tab="${tab}"]`).classList.add('tab-active');
         document.querySelector(`[data-tab="${tab}"]`).classList.remove('tab-inactive');
-        
-        // Update specific tabs
-        if (tab === 'insights') {
-            updateInsights();
-        } else if (tab === 'list') {
-            updateListView();
-        }
+        if (tab === 'insights') updateInsights();
+        if (tab === 'list') updateListView();
     }
 
     // Analyze Ad
@@ -427,24 +413,10 @@
 
         try {
             let analysis;
-            
             if (apiKey) {
-                // Echte API Analyse
-                const prompt = `Analysiere mit Skala -100 bis +100. Brand: ${brand}, Kategorie: ${category}, CTR: ${ctr}, Beschreibung: ${description}. 
-```
+                // Echte API Analyse (Kurzversion der Anweisung, ohne Backticks)
+                const prompt = `Analysiere die Werbung auf einer Skala -100 bis +100 für alle Attribute. Brand: ${brand}, Kategorie: ${category}, CTR: ${ctr}, Beschreibung: ${description}. Gib als JSON zurück: { "summary": "...", "top_attributes": [...], "red_flags": [...], "attributes": { "werte": {...}, "emotional": {...}, "aesthetik": {...} } }`;
 
-VOLLSTÄNDIGES Framework (alle 85 Attribute):
-WERTE: nachhaltigkeit, familie, individualitaet, erfolg_leistung, sicherheit, freiheit, tradition, innovation, gemeinschaft, gesundheit, authentizitaet, luxus, pragmatismus, abenteuer
-EMOTIONAL: humor, nostalgie, inspiration, vertrauen, ueberraschung, freude, stolz, neugier, empathie, aufregung, entspannung, rebellion, dringlichkeit, hoffnung
-ÄSTHETIK: minimalistisch, luxurioes, verspielt, professionell, natuerlich, technologisch, vintage, urban, rustikal, elegant, dynamisch, ruhig, kuenstlerisch, dokumentarisch, glamouroes
-INHALT: produktfokus, lifestyle, problem_loesung, storytelling, social_proof, vergleich, bildung, entertainment, ugc, behind_scenes, cause_marketing, influencer, humor_basiert, fakten_basiert, experiential
-ZIELGRUPPE: gen_z, millennials, gen_x, boomer, eltern, singles, berufstaetige, studenten, sportlich, kreative, tech_affin, luxus_orientiert, preisbewusst, urban, laendlich
-CTA: sofortkauf, awareness, consideration, community, information, app_download, registrierung, event, teilen, warteliste
-
-JSON (kein Markdown):
-{“summary”: “text”, “top_attributes”: [“a”], “red_flags”: [“f”], “attributes”: {“werte”: {“nachhaltigkeit”: {“score”: -75, “type”: “red_flag”, “reason”: “x”}}}}`;
-
-```
                 const response = await fetch('https://api.anthropic.com/v1/messages', {
                     method: 'POST',
                     headers: {
@@ -454,16 +426,21 @@ JSON (kein Markdown):
                     },
                     body: JSON.stringify({
                         model: 'claude-sonnet-4-20250514',
-                        max_tokens: 5000,
+                        max_tokens: 2000,
                         messages: [{role: 'user', content: prompt}]
                     })
                 });
 
                 const data = await response.json();
-                if (data.error) throw new Error(data.error.message);
-                
-                const json = data.content[0].text.replace(/```json/g, '').replace(/```/g, '').trim();
-                analysis = JSON.parse(json);
+                if (data.error) throw new Error(data.error.message || 'API-Fehler');
+                // Anpassung: Claude-Antwortparsing kann variieren; hier versuchen wir, ein JSON-Fragment zu extrahieren
+                let text = '';
+                if (data.content && Array.isArray(data.content) && data.content[0]) text = data.content[0].text || '';
+                if (!text && data.completion) text = data.completion;
+                // Extrahiere JSON-Teil
+                const jsonTextMatch = text.match(/\{[\s\S]*\}$/);
+                const jsonText = jsonTextMatch ? jsonTextMatch[0] : text;
+                analysis = JSON.parse(jsonText);
             } else {
                 // Demo Analyse
                 analysis = generateDemoAnalysis(category, description);
@@ -492,7 +469,8 @@ JSON (kein Markdown):
 
             alert('✅ Werbung analysiert und gespeichert!');
         } catch (error) {
-            alert('❌ Fehler: ' + error.message);
+            console.error(error);
+            alert('❌ Fehler: ' + (error.message || error));
         } finally {
             btn.disabled = false;
             btn.textContent = '🚀 Analysieren';
@@ -567,7 +545,6 @@ JSON (kein Markdown):
         document.getElementById('selectedCategory').textContent = ad.category + ' • CTR: ' + ad.ctr;
         document.getElementById('selectedSummary').textContent = ad.analysis.summary;
 
-        // Red Flags
         if (ad.analysis.red_flags?.length > 0) {
             document.getElementById('selectedRedFlags').classList.remove('hidden');
             document.getElementById('redFlagsList').innerHTML = ad.analysis.red_flags
@@ -577,7 +554,6 @@ JSON (kein Markdown):
             document.getElementById('selectedRedFlags').classList.add('hidden');
         }
 
-        // Top Attributes
         if (ad.analysis.top_attributes?.length > 0) {
             document.getElementById('selectedTopAttrs').classList.remove('hidden');
             document.getElementById('topAttrsList').innerHTML = ad.analysis.top_attributes
@@ -685,13 +661,11 @@ JSON (kein Markdown):
             return;
         }
 
-        // Stats
         const categories = new Set(ads.map(ad => ad.category)).size;
         const avgRedFlags = (ads.reduce((sum, ad) => sum + (ad.analysis.red_flags?.length || 0), 0) / ads.length).toFixed(1);
         
-        // Best CTR
         const ctrs = ads.map(ad => {
-            const match = ad.ctr.match(/[\d.]+/);
+            const match = (ad.ctr || '').match(/[\d.]+/);
             return match ? parseFloat(match[0]) : 0;
         });
         const bestCtr = Math.max(...ctrs).toFixed(1) + '%';
@@ -789,16 +763,17 @@ JSON (kein Markdown):
     // Initialize Matching Sliders
     function initMatchingSliders() {
         const createSlider = (attr, container) => {
+            const safeId = attr.replace(/[^a-z0-9_-]/gi, '_');
             const div = document.createElement('div');
             div.className = 'mb-4';
             div.innerHTML = `
                 <div class="flex justify-between mb-2">
                     <label class="text-sm font-medium text-gray-700">${attr}</label>
-                    <span class="text-sm font-bold text-blue-600" id="value-${attr}">50</span>
+                    <span class="text-sm font-bold text-blue-600" id="value-${safeId}">50</span>
                 </div>
                 <input 
                     type="range" 
-                    id="slider-${attr}" 
+                    id="slider-${safeId}" 
                     min="0" 
                     max="100" 
                     value="50" 
@@ -807,8 +782,8 @@ JSON (kein Markdown):
             `;
             container.appendChild(div);
 
-            const slider = div.querySelector(`#slider-${attr}`);
-            const valueLabel = div.querySelector(`#value-${attr}`);
+            const slider = div.querySelector(`#slider-${safeId}`);
+            const valueLabel = div.querySelector(`#value-${safeId}`);
             
             slider.addEventListener('input', () => {
                 valueLabel.textContent = slider.value;
@@ -827,36 +802,30 @@ JSON (kein Markdown):
             return;
         }
 
-        // Get user profile
         const userProfile = {};
         [...ATTRIBUTES.werte, ...ATTRIBUTES.emotional, ...ATTRIBUTES.aesthetik].forEach(attr => {
-            const slider = document.getElementById(`slider-${attr}`);
+            const safeId = attr.replace(/[^a-z0-9_-]/gi, '_');
+            const slider = document.getElementById(`slider-${safeId}`);
             if (slider) {
                 userProfile[attr] = parseInt(slider.value);
             }
         });
 
-        // Calculate match scores
         const matches = ads.map(ad => {
             let matchScore = 0;
             let matchCount = 0;
 
             Object.keys(userProfile).forEach(attr => {
                 const userValue = userProfile[attr];
-                
-                // Find attribute in ad analysis
                 let adScore = null;
                 Object.values(ad.analysis.attributes || {}).forEach(group => {
-                    if (group[attr]) {
+                    if (group && group[attr] !== undefined) {
                         adScore = group[attr].score;
                     }
                 });
 
                 if (adScore !== null) {
-                    // Normalize ad score from -100/100 to 0/100
                     const normalizedAdScore = (adScore + 100) / 2;
-                    
-                    // Calculate similarity (100 - difference)
                     const similarity = 100 - Math.abs(userValue - normalizedAdScore);
                     matchScore += similarity;
                     matchCount++;
@@ -869,10 +838,8 @@ JSON (kein Markdown):
             };
         });
 
-        // Sort by score
         matches.sort((a, b) => b.score - a.score);
 
-        // Display results
         const container = document.getElementById('matchResultsContainer');
         container.innerHTML = matches.slice(0, 6).map(({ ad, score }) => `
             <div class="border-2 rounded-xl p-4 ${score > 70 ? 'border-green-500 bg-green-50' : score > 50 ? 'border-blue-500 bg-blue-50' : 'border-gray-300'}">
@@ -883,7 +850,7 @@ JSON (kein Markdown):
                     </span>
                 </div>
                 <p class="text-sm text-gray-600 mb-2">${ad.category}</p>
-                <p class="text-xs text-gray-500 mb-3">${ad.analysis.summary.substring(0, 100)}...</p>
+                <p class="text-xs text-gray-500 mb-3">${(ad.analysis.summary || '').substring(0, 100)}...</p>
                 <div class="flex gap-2 flex-wrap">
                     ${(ad.analysis.top_attributes || []).slice(0, 3).map(attr => `
                         <span class="px-2 py-1 bg-white border border-gray-300 text-xs rounded-full">${attr}</span>
@@ -922,13 +889,11 @@ JSON (kein Markdown):
         reader.onload = function(e) {
             try {
                 const imported = JSON.parse(e.target.result);
-                
                 if (!Array.isArray(imported)) {
                     alert('❌ Ungültiges Format!');
                     return;
                 }
 
-                // Merge: Nur neue Ads hinzufügen (nach ID)
                 const existingIds = new Set(ads.map(ad => ad.id));
                 const newAds = imported.filter(ad => !existingIds.has(ad.id));
                 
@@ -954,39 +919,26 @@ JSON (kein Markdown):
     // Update UI
     function updateUI() {
         document.getElementById('adCount').textContent = ads.length;
-        
-        if (currentTab === 'list') {
-            updateListView();
-        } else if (currentTab === 'insights') {
-            updateInsights();
-        }
+        if (currentTab === 'list') updateListView();
+        else if (currentTab === 'insights') updateInsights();
     }
 
     // Event Listeners
     document.addEventListener('DOMContentLoaded', function() {
         init();
-        
-        // API Modal
         document.getElementById('saveKeyBtn').addEventListener('click', saveApiKey);
         document.getElementById('skipKeyBtn').addEventListener('click', skipApiKey);
         document.getElementById('showKeyBtn').addEventListener('click', showApiKeyModal);
-        
-        // Main Actions
         document.getElementById('analyzeBtn').addEventListener('click', analyzeAd);
         document.getElementById('exportBtn').addEventListener('click', exportJSON);
         document.getElementById('clearBtn').addEventListener('click', clearAllData);
         document.getElementById('importFile').addEventListener('change', importJSON);
-        
-        // Tabs
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', () => switchTab(btn.dataset.tab));
         });
-        
-        // Matching
         document.getElementById('matchBtn').addEventListener('click', matchAds);
     });
 </script>
-```
 
 </body>
 </html>
