@@ -1,32 +1,992 @@
-Perfekt! Ich baue dir zwei neue Tools ein:
+<!DOCTYPE html>
 
-1. **📊 Insights-Analyse** - Überblick über alle Werbungen mit Statistiken
-2. **🎯 Matching-Tool** - Nutzer-Simulator mit Schiebereglern für personalisierte Werbevorschläge
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Werbeanalyse Dashboard - Kollaboration + Insights + Matching</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { 
+            font-family: system-ui, -apple-system, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        button { min-height: 44px; }
+        .touch-card { transition: all 0.2s; }
+        .touch-card:active { transform: scale(0.98); }
+        .tab-active { background: #2563eb; color: white; }
+        .tab-inactive { background: #e5e7eb; color: #4b5563; }
 
-Lass mich das für dich umsetzen:Perfekt! 🎉 Ich habe dein Dashboard um **zwei mächtige neue Tools** erweitert:
+```
+    /* Custom Slider Styles */
+    input[type="range"] {
+        -webkit-appearance: none;
+        width: 100%;
+        height: 8px;
+        border-radius: 5px;
+        background: linear-gradient(to right, #ef4444 0%, #eab308 50%, #22c55e 100%);
+        outline: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: #2563eb;
+        cursor: pointer;
+        border: 3px solid white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    input[type="range"]::-moz-range-thumb {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: #2563eb;
+        cursor: pointer;
+        border: 3px solid white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+</style>
+```
 
-## ✨ Neue Features
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen p-4 md:p-6">
+    <div class="max-w-7xl mx-auto">
 
-### 📊 **Insights-Analyse**
-- **Statistiken-Dashboard** mit Gesamtanzahl, Kategorien, Ø Red Flags, Beste CTR
-- **Häufigste Red Flags** - Sehe welche Probleme am öftesten auftreten
-- **Diagramme**:
-  - Ads pro Kategorie (Doughnut Chart)
-  - Top Attribute (Bar Chart)
+```
+    <!-- API Key Setup Modal -->
+    <div id="apiKeyModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl p-6 md:p-8 max-w-md w-full">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">🔑 Claude API Key</h2>
+            <p class="text-gray-600 mb-4">Für echte KI-Analysen brauchst du einen Claude API Key von Anthropic.</p>
+            
+            <input 
+                id="apiKeyInput" 
+                type="password" 
+                placeholder="sk-ant-api03-..." 
+                class="w-full px-4 py-3 border-2 rounded-lg mb-4 text-sm"
+            >
+            
+            <div class="flex gap-2">
+                <button id="saveKeyBtn" class="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-700">
+                    Speichern
+                </button>
+                <button id="skipKeyBtn" class="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-bold hover:bg-gray-300">
+                    Demo-Modus
+                </button>
+            </div>
+            
+            <p class="text-xs text-gray-500 mt-4">
+                <strong>Kein Key?</strong> Im Demo-Modus kannst du alles testen, aber Analysen sind simuliert.
+                <br><strong>Key holen:</strong> console.anthropic.com
+            </p>
+        </div>
+    </div>
 
-### 🎯 **Matching-Tool**
-- **Nutzer-Simulator** mit Schiebereglern für:
-  - 💎 **Werte** (14 Attribute): Nachhaltigkeit, Familie, Innovation, etc.
-  - 😊 **Emotionale Präferenzen** (14 Attribute): Humor, Inspiration, Vertrauen, etc.
-  - 🎨 **Ästhetische Präferenzen** (15 Attribute): Minimalistisch, Luxuriös, etc.
-- **Intelligentes Matching**: Berechnet Ähnlichkeit zwischen Nutzerprofil und Werbungen
-- **Top-Matches** mit Prozent-Score und farblicher Kennzeichnung (Grün >70%, Blau >50%)
+    <!-- Header -->
+    <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8 mb-4 md:mb-6">
+        <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
+            <div>
+                <h1 class="text-3xl md:text-4xl font-bold text-gray-800">Werbeanalyse Dashboard</h1>
+                <p class="text-sm md:text-base text-gray-600">Kollaboration • Insights • Matching</p>
+            </div>
+            <div class="flex gap-2">
+                <div class="bg-green-100 px-4 py-2 rounded-lg flex items-center gap-2">
+                    <span class="text-green-800 font-bold" id="adCount">0</span>
+                    <span class="text-green-600 text-sm">Ads</span>
+                </div>
+                <div id="apiStatus" class="bg-gray-100 px-4 py-2 rounded-lg flex items-center gap-2">
+                    <span class="text-gray-600 text-sm" id="apiStatusText">Demo</span>
+                </div>
+            </div>
+        </div>
 
-## 🎨 Navigation
-Vier neue Tabs:
-1. **🚀 Analysieren** - Werbungen hinzufügen
-2. **📋 Liste** - Kategorisierte Übersicht
-3. **📊 Insights** - Statistiken & Charts
-4. **🎯 Matching** - Nutzer-Simulation
+        <!-- Navigation Tabs -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
+            <button data-tab="analyze" class="tab-btn px-4 py-3 rounded-lg font-bold touch-card tab-active">
+                🚀 Analysieren
+            </button>
+            <button data-tab="list" class="tab-btn px-4 py-3 rounded-lg font-bold touch-card tab-inactive">
+                📋 Liste
+            </button>
+            <button data-tab="insights" class="tab-btn px-4 py-3 rounded-lg font-bold touch-card tab-inactive">
+                📊 Insights
+            </button>
+            <button data-tab="matching" class="tab-btn px-4 py-3 rounded-lg font-bold touch-card tab-inactive">
+                🎯 Matching
+            </button>
+        </div>
+    </div>
 
-Alle bisherigen Funktionen (Import/Export, API-Modus, Kollaboration) bleiben erhalten!
+    <!-- Tab: Analyze -->
+    <div id="tab-analyze" class="tab-content">
+        <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8 mb-4 md:mb-6">
+            <!-- Collaboration Tools -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 mb-4">
+                <label class="flex-1 bg-green-500 text-white px-4 py-3 rounded-lg font-bold hover:bg-green-600 cursor-pointer text-center touch-card">
+                    📥 Import
+                    <input type="file" id="importFile" accept=".json" class="hidden">
+                </label>
+                <button id="exportBtn" class="flex-1 bg-blue-500 text-white px-4 py-3 rounded-lg font-bold hover:bg-blue-600 touch-card">
+                    📤 Export
+                </button>
+                <button id="showKeyBtn" class="flex-1 bg-purple-500 text-white px-4 py-3 rounded-lg font-bold hover:bg-purple-600 touch-card">
+                    🔑 API Key
+                </button>
+                <button id="clearBtn" class="flex-1 bg-red-500 text-white px-4 py-3 rounded-lg font-bold hover:bg-red-600 touch-card">
+                    🗑️ Alle löschen
+                </button>
+            </div>
+
+            <!-- Input Form -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                <input id="brand" placeholder="Brand" class="px-4 py-3 border-2 rounded-lg text-base">
+                <select id="category" class="px-4 py-3 border-2 rounded-lg text-base">
+                    <option value="">Kategorie wählen *</option>
+                    <option>Lebensmittel & Getränke</option>
+                    <option>Technologie & Elektronik</option>
+                    <option>Mode & Fashion</option>
+                    <option>Sport & Fitness</option>
+                    <option>Automotive</option>
+                    <option>Reisen & Tourismus</option>
+                    <option>Finanzen & Versicherungen</option>
+                    <option>Beauty & Kosmetik</option>
+                    <option>Haushalt & Wohnen</option>
+                    <option>Entertainment & Medien</option>
+                </select>
+                <input id="ctr" placeholder="CTR (z.B. 4.2%)" class="px-4 py-3 border-2 rounded-lg text-base">
+                <input id="url" placeholder="URL (optional)" class="px-4 py-3 border-2 rounded-lg text-base">
+            </div>
+
+            <textarea id="description" placeholder="Detaillierte Werbungsbeschreibung..." class="w-full px-4 py-3 border-2 rounded-lg mb-4 h-32 text-base"></textarea>
+
+            <button id="analyzeBtn" class="w-full bg-blue-600 text-white px-6 py-4 rounded-lg font-bold text-lg hover:bg-blue-700 touch-card">
+                🚀 Analysieren
+            </button>
+        </div>
+    </div>
+
+    <!-- Tab: List -->
+    <div id="tab-list" class="tab-content hidden">
+        <div id="adsList" class="bg-white rounded-2xl shadow-xl p-6 md:p-8 mb-4 md:mb-6 hidden">
+            <h2 class="text-2xl font-bold mb-4">Kategorien</h2>
+            <div id="categoriesContainer"></div>
+        </div>
+
+        <!-- Selected Ad Details -->
+        <div id="selectedAd" class="bg-white rounded-2xl shadow-xl p-6 md:p-8 hidden">
+            <h2 id="selectedBrand" class="text-2xl font-bold mb-2"></h2>
+            <p id="selectedCategory" class="text-sm text-gray-600 mb-2"></p>
+            <p id="selectedSummary" class="text-gray-700 mb-4"></p>
+            
+            <div id="selectedRedFlags" class="hidden bg-red-50 border-l-4 border-red-500 rounded-lg p-4 mb-4">
+                <h3 class="font-bold text-red-800 mb-2">⚠️ Red Flags</h3>
+                <div id="redFlagsList" class="flex gap-2 flex-wrap"></div>
+            </div>
+            
+            <div id="selectedTopAttrs" class="hidden bg-green-50 border-l-4 border-green-500 rounded-lg p-4">
+                <h3 class="font-bold text-green-800 mb-2">✅ Top Attribute</h3>
+                <div id="topAttrsList" class="flex gap-2 flex-wrap"></div>
+            </div>
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="bg-white rounded-2xl shadow-xl p-12 text-center">
+            <div class="text-6xl mb-4">📊</div>
+            <h3 class="text-xl font-bold text-gray-600 mb-2">Keine Werbungen</h3>
+            <p class="text-gray-500">Analysiere deine erste Werbung oder importiere Daten von deinem Kollaborations-Partner</p>
+        </div>
+    </div>
+
+    <!-- Tab: Insights -->
+    <div id="tab-insights" class="tab-content hidden">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <!-- Stats Cards -->
+            <div class="bg-white rounded-2xl shadow-xl p-6">
+                <h3 class="text-lg font-bold mb-4">📈 Statistiken</h3>
+                <div class="space-y-3">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Gesamt Werbungen:</span>
+                        <span class="font-bold" id="stats-total">0</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Kategorien:</span>
+                        <span class="font-bold" id="stats-categories">0</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Ø Red Flags:</span>
+                        <span class="font-bold" id="stats-redflags">0</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Beste CTR:</span>
+                        <span class="font-bold text-green-600" id="stats-bestctr">N/A</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Red Flags -->
+            <div class="bg-white rounded-2xl shadow-xl p-6">
+                <h3 class="text-lg font-bold mb-4">⚠️ Häufigste Red Flags</h3>
+                <div id="topRedFlagsContainer" class="space-y-2"></div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-white rounded-2xl shadow-xl p-6">
+                <h3 class="text-lg font-bold mb-4">📊 Ads pro Kategorie</h3>
+                <canvas id="categoryChart"></canvas>
+            </div>
+            <div class="bg-white rounded-2xl shadow-xl p-6">
+                <h3 class="text-lg font-bold mb-4">🎯 Top Attribute</h3>
+                <canvas id="attributesChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab: Matching -->
+    <div id="tab-matching" class="tab-content hidden">
+        <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8">
+            <h2 class="text-2xl font-bold mb-2">🎯 Nutzer-Matching Simulator</h2>
+            <p class="text-gray-600 mb-6">Simuliere einen Nutzer durch Bewertung der Attribute. Das System findet die passendsten Werbungen.</p>
+
+            <!-- User Profile Sliders -->
+            <div class="mb-6">
+                <h3 class="text-lg font-bold mb-4">👤 Nutzer-Profil erstellen</h3>
+                
+                <!-- Werte -->
+                <div class="mb-6">
+                    <h4 class="font-bold text-gray-700 mb-3 flex items-center gap-2">
+                        <span>💎</span> Werte (0 = unwichtig, 100 = sehr wichtig)
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="werteSliders"></div>
+                </div>
+
+                <!-- Emotional -->
+                <div class="mb-6">
+                    <h4 class="font-bold text-gray-700 mb-3 flex items-center gap-2">
+                        <span>😊</span> Emotionale Präferenzen
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="emotionalSliders"></div>
+                </div>
+
+                <!-- Ästhetik -->
+                <div class="mb-6">
+                    <h4 class="font-bold text-gray-700 mb-3 flex items-center gap-2">
+                        <span>🎨</span> Ästhetische Präferenzen
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="aesthetikSliders"></div>
+                </div>
+            </div>
+
+            <!-- Match Button -->
+            <button id="matchBtn" class="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-4 rounded-lg font-bold text-lg hover:from-purple-700 hover:to-blue-700 touch-card mb-6">
+                🎯 Passende Werbungen finden
+            </button>
+
+            <!-- Results -->
+            <div id="matchResults" class="hidden">
+                <h3 class="text-xl font-bold mb-4">✨ Beste Matches für dein Profil</h3>
+                <div id="matchResultsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+            </div>
+
+            <!-- Empty State -->
+            <div id="matchEmptyState" class="text-center py-12">
+                <div class="text-6xl mb-4">🎯</div>
+                <h3 class="text-xl font-bold text-gray-600 mb-2">Bereit zum Matchen?</h3>
+                <p class="text-gray-500">Passe die Schieberegler an und finde die perfekten Werbungen für dein Profil!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let ads = [];
+    let expandedCategories = {};
+    let apiKey = null;
+    let hasShownApiModal = false;
+    let currentTab = 'analyze';
+    let categoryChart = null;
+    let attributesChart = null;
+
+    // Attribute Framework
+    const ATTRIBUTES = {
+        werte: ['nachhaltigkeit', 'familie', 'individualitaet', 'erfolg_leistung', 'sicherheit', 'freiheit', 'tradition', 'innovation', 'gemeinschaft', 'gesundheit', 'authentizitaet', 'luxus', 'pragmatismus', 'abenteuer'],
+        emotional: ['humor', 'nostalgie', 'inspiration', 'vertrauen', 'ueberraschung', 'freude', 'stolz', 'neugier', 'empathie', 'aufregung', 'entspannung', 'rebellion', 'dringlichkeit', 'hoffnung'],
+        aesthetik: ['minimalistisch', 'luxurioes', 'verspielt', 'professionell', 'natuerlich', 'technologisch', 'vintage', 'urban', 'rustikal', 'elegant', 'dynamisch', 'ruhig', 'kuenstlerisch', 'dokumentarisch', 'glamouroes']
+    };
+
+    // Init
+    function init() {
+        loadAds();
+        loadApiKey();
+        initMatchingSliders();
+        if (!hasShownApiModal) {
+            document.getElementById('apiKeyModal').style.display = 'flex';
+        }
+        updateUI();
+    }
+
+    // API Key Management
+    function loadApiKey() {
+        apiKey = localStorage.getItem('claude_api_key');
+        updateApiStatus();
+    }
+
+    function saveApiKey() {
+        const key = document.getElementById('apiKeyInput').value.trim();
+        if (key && key.startsWith('sk-ant-')) {
+            localStorage.setItem('claude_api_key', key);
+            apiKey = key;
+            document.getElementById('apiKeyModal').style.display = 'none';
+            hasShownApiModal = true;
+            updateApiStatus();
+            alert('✅ API Key gespeichert! Echte Analysen aktiviert.');
+        } else {
+            alert('❌ Ungültiger API Key. Muss mit sk-ant- beginnen.');
+        }
+    }
+
+    function skipApiKey() {
+        document.getElementById('apiKeyModal').style.display = 'none';
+        hasShownApiModal = true;
+        alert('ℹ️ Demo-Modus aktiviert. Analysen sind simuliert.');
+    }
+
+    function showApiKeyModal() {
+        document.getElementById('apiKeyModal').style.display = 'flex';
+    }
+
+    function updateApiStatus() {
+        const statusEl = document.getElementById('apiStatusText');
+        const statusDiv = document.getElementById('apiStatus');
+        if (apiKey) {
+            statusEl.textContent = 'API ✓';
+            statusDiv.className = 'bg-green-100 px-4 py-2 rounded-lg flex items-center gap-2';
+        } else {
+            statusEl.textContent = 'Demo';
+            statusDiv.className = 'bg-gray-100 px-4 py-2 rounded-lg flex items-center gap-2';
+        }
+    }
+
+    // Data Management
+    function loadAds() {
+        const stored = localStorage.getItem('analyzed_ads');
+        if (stored) {
+            ads = JSON.parse(stored);
+        }
+    }
+
+    function saveAds() {
+        localStorage.setItem('analyzed_ads', JSON.stringify(ads));
+        updateUI();
+    }
+
+    // Tab Navigation
+    function switchTab(tab) {
+        currentTab = tab;
+        
+        // Hide all tabs
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('tab-active');
+            btn.classList.add('tab-inactive');
+        });
+        
+        // Show selected tab
+        document.getElementById('tab-' + tab).classList.remove('hidden');
+        document.querySelector(`[data-tab="${tab}"]`).classList.add('tab-active');
+        document.querySelector(`[data-tab="${tab}"]`).classList.remove('tab-inactive');
+        
+        // Update specific tabs
+        if (tab === 'insights') {
+            updateInsights();
+        } else if (tab === 'list') {
+            updateListView();
+        }
+    }
+
+    // Analyze Ad
+    async function analyzeAd() {
+        const brand = document.getElementById('brand').value.trim();
+        const category = document.getElementById('category').value;
+        const ctr = document.getElementById('ctr').value.trim();
+        const url = document.getElementById('url').value.trim();
+        const description = document.getElementById('description').value.trim();
+
+        if (!description || !category) {
+            alert('❌ Bitte Beschreibung und Kategorie eingeben!');
+            return;
+        }
+
+        const btn = document.getElementById('analyzeBtn');
+        btn.disabled = true;
+        btn.textContent = '⏳ Analysiere...';
+
+        try {
+            let analysis;
+            
+            if (apiKey) {
+                // Echte API Analyse
+                const prompt = `Analysiere mit Skala -100 bis +100. Brand: ${brand}, Kategorie: ${category}, CTR: ${ctr}, Beschreibung: ${description}. 
+```
+
+VOLLSTÄNDIGES Framework (alle 85 Attribute):
+WERTE: nachhaltigkeit, familie, individualitaet, erfolg_leistung, sicherheit, freiheit, tradition, innovation, gemeinschaft, gesundheit, authentizitaet, luxus, pragmatismus, abenteuer
+EMOTIONAL: humor, nostalgie, inspiration, vertrauen, ueberraschung, freude, stolz, neugier, empathie, aufregung, entspannung, rebellion, dringlichkeit, hoffnung
+ÄSTHETIK: minimalistisch, luxurioes, verspielt, professionell, natuerlich, technologisch, vintage, urban, rustikal, elegant, dynamisch, ruhig, kuenstlerisch, dokumentarisch, glamouroes
+INHALT: produktfokus, lifestyle, problem_loesung, storytelling, social_proof, vergleich, bildung, entertainment, ugc, behind_scenes, cause_marketing, influencer, humor_basiert, fakten_basiert, experiential
+ZIELGRUPPE: gen_z, millennials, gen_x, boomer, eltern, singles, berufstaetige, studenten, sportlich, kreative, tech_affin, luxus_orientiert, preisbewusst, urban, laendlich
+CTA: sofortkauf, awareness, consideration, community, information, app_download, registrierung, event, teilen, warteliste
+
+JSON (kein Markdown):
+{“summary”: “text”, “top_attributes”: [“a”], “red_flags”: [“f”], “attributes”: {“werte”: {“nachhaltigkeit”: {“score”: -75, “type”: “red_flag”, “reason”: “x”}}}}`;
+
+```
+                const response = await fetch('https://api.anthropic.com/v1/messages', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-api-key': apiKey,
+                        'anthropic-version': '2023-06-01'
+                    },
+                    body: JSON.stringify({
+                        model: 'claude-sonnet-4-20250514',
+                        max_tokens: 5000,
+                        messages: [{role: 'user', content: prompt}]
+                    })
+                });
+
+                const data = await response.json();
+                if (data.error) throw new Error(data.error.message);
+                
+                const json = data.content[0].text.replace(/```json/g, '').replace(/```/g, '').trim();
+                analysis = JSON.parse(json);
+            } else {
+                // Demo Analyse
+                analysis = generateDemoAnalysis(category, description);
+            }
+
+            const newAd = {
+                id: Date.now(),
+                brand: brand || 'Unbekannt',
+                category,
+                ctr: ctr || 'N/A',
+                url,
+                description,
+                timestamp: new Date().toLocaleString('de-DE'),
+                analysis
+            };
+
+            ads.unshift(newAd);
+            saveAds();
+
+            // Clear form
+            document.getElementById('brand').value = '';
+            document.getElementById('category').value = '';
+            document.getElementById('ctr').value = '';
+            document.getElementById('url').value = '';
+            document.getElementById('description').value = '';
+
+            alert('✅ Werbung analysiert und gespeichert!');
+        } catch (error) {
+            alert('❌ Fehler: ' + error.message);
+        } finally {
+            btn.disabled = false;
+            btn.textContent = '🚀 Analysieren';
+        }
+    }
+
+    // Generate Demo Analysis
+    function generateDemoAnalysis(category, description) {
+        const randomScore = () => Math.floor(Math.random() * 200) - 100;
+        const pickRandom = (arr, count) => {
+            const shuffled = [...arr].sort(() => 0.5 - Math.random());
+            return shuffled.slice(0, count);
+        };
+
+        const allAttrs = [...ATTRIBUTES.werte, ...ATTRIBUTES.emotional, ...ATTRIBUTES.aesthetik];
+        const topAttrs = pickRandom(allAttrs, 3);
+        const redFlags = Math.random() > 0.5 ? pickRandom(allAttrs, 2) : [];
+
+        const attributes = {};
+        Object.keys(ATTRIBUTES).forEach(group => {
+            attributes[group] = {};
+            ATTRIBUTES[group].forEach(attr => {
+                const score = randomScore();
+                attributes[group][attr] = {
+                    score,
+                    type: score > 50 ? 'strength' : score < -50 ? 'red_flag' : 'neutral',
+                    reason: 'Demo-Analyse'
+                };
+            });
+        });
+
+        return {
+            summary: `Demo-Analyse für ${category}: ${description.substring(0, 100)}...`,
+            top_attributes: topAttrs,
+            red_flags: redFlags,
+            attributes
+        };
+    }
+
+    // Delete Ad
+    function deleteAd(id) {
+        if (confirm('Werbung wirklich löschen?')) {
+            ads = ads.filter(ad => ad.id !== id);
+            saveAds();
+        }
+    }
+
+    // Clear All
+    function clearAllData() {
+        if (confirm('ALLE Werbungen löschen? Dies kann nicht rückgängig gemacht werden!')) {
+            if (confirm('Wirklich sicher? Alle Daten gehen verloren!')) {
+                ads = [];
+                localStorage.removeItem('analyzed_ads');
+                updateUI();
+                alert('✅ Alle Daten gelöscht!');
+            }
+        }
+    }
+
+    // Toggle Category
+    function toggleCategory(cat) {
+        expandedCategories[cat] = !expandedCategories[cat];
+        updateListView();
+    }
+
+    // Select Ad
+    function selectAd(id) {
+        const ad = ads.find(a => a.id === id);
+        if (!ad) return;
+
+        document.getElementById('selectedBrand').textContent = ad.brand;
+        document.getElementById('selectedCategory').textContent = ad.category + ' • CTR: ' + ad.ctr;
+        document.getElementById('selectedSummary').textContent = ad.analysis.summary;
+
+        // Red Flags
+        if (ad.analysis.red_flags?.length > 0) {
+            document.getElementById('selectedRedFlags').classList.remove('hidden');
+            document.getElementById('redFlagsList').innerHTML = ad.analysis.red_flags
+                .map(f => `<span class="px-3 py-1 bg-red-200 text-red-800 rounded-full text-sm">${f}</span>`)
+                .join('');
+        } else {
+            document.getElementById('selectedRedFlags').classList.add('hidden');
+        }
+
+        // Top Attributes
+        if (ad.analysis.top_attributes?.length > 0) {
+            document.getElementById('selectedTopAttrs').classList.remove('hidden');
+            document.getElementById('topAttrsList').innerHTML = ad.analysis.top_attributes
+                .map(a => `<span class="px-3 py-1 bg-green-200 text-green-800 rounded-full text-sm">${a}</span>`)
+                .join('');
+        } else {
+            document.getElementById('selectedTopAttrs').classList.add('hidden');
+        }
+
+        document.getElementById('selectedAd').classList.remove('hidden');
+        document.getElementById('selectedAd').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Group by Category
+    function groupByCategory() {
+        const grouped = {};
+        ads.forEach(ad => {
+            if (!grouped[ad.category]) grouped[ad.category] = [];
+            grouped[ad.category].push(ad);
+        });
+        return grouped;
+    }
+
+    // Update List View
+    function updateListView() {
+        if (ads.length === 0) {
+            document.getElementById('emptyState').classList.remove('hidden');
+            document.getElementById('adsList').classList.add('hidden');
+            return;
+        }
+
+        document.getElementById('emptyState').classList.add('hidden');
+        document.getElementById('adsList').classList.remove('hidden');
+
+        const grouped = groupByCategory();
+        const container = document.getElementById('categoriesContainer');
+        
+        container.innerHTML = Object.entries(grouped).map(([cat, catAds]) => `
+            <div class="border-2 rounded-xl mb-4 overflow-hidden">
+                <button data-category="${cat}" class="category-toggle w-full flex justify-between items-center p-4 bg-gray-50 hover:bg-gray-100 active:bg-gray-200 touch-card">
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl">${expandedCategories[cat] ? '📂' : '📁'}</span>
+                        <span class="font-bold text-left">${cat}</span>
+                        <span class="bg-blue-100 px-3 py-1 rounded-full text-sm font-bold">${catAds.length}</span>
+                    </div>
+                    <span class="text-2xl">${expandedCategories[cat] ? '▼' : '▶'}</span>
+                </button>
+                ${expandedCategories[cat] ? `
+                    <div class="p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                        ${catAds.map(ad => `
+                            <div class="border-2 rounded-xl p-4 touch-card">
+                                <div data-ad-id="${ad.id}" class="ad-card cursor-pointer mb-3">
+                                    <h3 class="font-bold text-lg">${ad.brand}</h3>
+                                    <p class="text-sm text-gray-600">${ad.category}</p>
+                                    <div class="flex items-center gap-2 mt-2">
+                                        <span class="text-green-600">📈</span>
+                                        <span class="text-xs">CTR: ${ad.ctr}</span>
+                                    </div>
+                                    ${ad.analysis.red_flags?.length > 0 ? `
+                                        <div class="flex gap-1 flex-wrap mt-2">
+                                            ${ad.analysis.red_flags.slice(0, 2).map(f => `
+                                                <span class="px-2 py-1 bg-red-100 text-red-700 text-xs rounded-full">${f}</span>
+                                            `).join('')}
+                                        </div>
+                                    ` : ''}
+                                </div>
+                                <button data-delete-id="${ad.id}" class="delete-btn w-full px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 font-bold touch-card">
+                                    🗑️ Löschen
+                                </button>
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : ''}
+            </div>
+        `).join('');
+        
+        // Add event listeners
+        document.querySelectorAll('.category-toggle').forEach(btn => {
+            btn.addEventListener('click', function() {
+                toggleCategory(this.dataset.category);
+            });
+        });
+        
+        document.querySelectorAll('.ad-card').forEach(card => {
+            card.addEventListener('click', function() {
+                selectAd(parseInt(this.dataset.adId));
+            });
+        });
+        
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                deleteAd(parseInt(this.dataset.deleteId));
+            });
+        });
+    }
+
+    // Update Insights
+    function updateInsights() {
+        if (ads.length === 0) {
+            document.getElementById('stats-total').textContent = '0';
+            document.getElementById('stats-categories').textContent = '0';
+            document.getElementById('stats-redflags').textContent = '0';
+            document.getElementById('stats-bestctr').textContent = 'N/A';
+            return;
+        }
+
+        // Stats
+        const categories = new Set(ads.map(ad => ad.category)).size;
+        const avgRedFlags = (ads.reduce((sum, ad) => sum + (ad.analysis.red_flags?.length || 0), 0) / ads.length).toFixed(1);
+        
+        // Best CTR
+        const ctrs = ads.map(ad => {
+            const match = ad.ctr.match(/[\d.]+/);
+            return match ? parseFloat(match[0]) : 0;
+        });
+        const bestCtr = Math.max(...ctrs).toFixed(1) + '%';
+
+        document.getElementById('stats-total').textContent = ads.length;
+        document.getElementById('stats-categories').textContent = categories;
+        document.getElementById('stats-redflags').textContent = avgRedFlags;
+        document.getElementById('stats-bestctr').textContent = bestCtr;
+
+        // Top Red Flags
+        const redFlagCount = {};
+        ads.forEach(ad => {
+            (ad.analysis.red_flags || []).forEach(flag => {
+                redFlagCount[flag] = (redFlagCount[flag] || 0) + 1;
+            });
+        });
+
+        const topRedFlags = Object.entries(redFlagCount)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 5);
+
+        document.getElementById('topRedFlagsContainer').innerHTML = topRedFlags.length > 0
+            ? topRedFlags.map(([flag, count]) => `
+                <div class="flex justify-between items-center p-3 bg-red-50 rounded-lg">
+                    <span class="font-medium">${flag}</span>
+                    <span class="px-3 py-1 bg-red-200 text-red-800 rounded-full text-sm font-bold">${count}x</span>
+                </div>
+            `).join('')
+            : '<p class="text-gray-500 text-sm">Keine Red Flags gefunden</p>';
+
+        // Category Chart
+        const categoryData = {};
+        ads.forEach(ad => {
+            categoryData[ad.category] = (categoryData[ad.category] || 0) + 1;
+        });
+
+        if (categoryChart) categoryChart.destroy();
+        const ctxCat = document.getElementById('categoryChart').getContext('2d');
+        categoryChart = new Chart(ctxCat, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(categoryData),
+                datasets: [{
+                    data: Object.values(categoryData),
+                    backgroundColor: [
+                        '#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b',
+                        '#10b981', '#06b6d4', '#6366f1', '#f97316'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+
+        // Attributes Chart
+        const attrCount = {};
+        ads.forEach(ad => {
+            (ad.analysis.top_attributes || []).forEach(attr => {
+                attrCount[attr] = (attrCount[attr] || 0) + 1;
+            });
+        });
+
+        const topAttrs = Object.entries(attrCount)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 8);
+
+        if (attributesChart) attributesChart.destroy();
+        const ctxAttr = document.getElementById('attributesChart').getContext('2d');
+        attributesChart = new Chart(ctxAttr, {
+            type: 'bar',
+            data: {
+                labels: topAttrs.map(([attr]) => attr),
+                datasets: [{
+                    label: 'Häufigkeit',
+                    data: topAttrs.map(([, count]) => count),
+                    backgroundColor: '#22c55e'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+    }
+
+    // Initialize Matching Sliders
+    function initMatchingSliders() {
+        const createSlider = (attr, container) => {
+            const div = document.createElement('div');
+            div.className = 'mb-4';
+            div.innerHTML = `
+                <div class="flex justify-between mb-2">
+                    <label class="text-sm font-medium text-gray-700">${attr}</label>
+                    <span class="text-sm font-bold text-blue-600" id="value-${attr}">50</span>
+                </div>
+                <input 
+                    type="range" 
+                    id="slider-${attr}" 
+                    min="0" 
+                    max="100" 
+                    value="50" 
+                    class="w-full"
+                >
+            `;
+            container.appendChild(div);
+
+            const slider = div.querySelector(`#slider-${attr}`);
+            const valueLabel = div.querySelector(`#value-${attr}`);
+            
+            slider.addEventListener('input', () => {
+                valueLabel.textContent = slider.value;
+            });
+        };
+
+        ATTRIBUTES.werte.forEach(attr => createSlider(attr, document.getElementById('werteSliders')));
+        ATTRIBUTES.emotional.forEach(attr => createSlider(attr, document.getElementById('emotionalSliders')));
+        ATTRIBUTES.aesthetik.forEach(attr => createSlider(attr, document.getElementById('aesthetikSliders')));
+    }
+
+    // Match Ads to User Profile
+    function matchAds() {
+        if (ads.length === 0) {
+            alert('❌ Keine Werbungen vorhanden! Analysiere zuerst einige Werbungen.');
+            return;
+        }
+
+        // Get user profile
+        const userProfile = {};
+        [...ATTRIBUTES.werte, ...ATTRIBUTES.emotional, ...ATTRIBUTES.aesthetik].forEach(attr => {
+            const slider = document.getElementById(`slider-${attr}`);
+            if (slider) {
+                userProfile[attr] = parseInt(slider.value);
+            }
+        });
+
+        // Calculate match scores
+        const matches = ads.map(ad => {
+            let matchScore = 0;
+            let matchCount = 0;
+
+            Object.keys(userProfile).forEach(attr => {
+                const userValue = userProfile[attr];
+                
+                // Find attribute in ad analysis
+                let adScore = null;
+                Object.values(ad.analysis.attributes || {}).forEach(group => {
+                    if (group[attr]) {
+                        adScore = group[attr].score;
+                    }
+                });
+
+                if (adScore !== null) {
+                    // Normalize ad score from -100/100 to 0/100
+                    const normalizedAdScore = (adScore + 100) / 2;
+                    
+                    // Calculate similarity (100 - difference)
+                    const similarity = 100 - Math.abs(userValue - normalizedAdScore);
+                    matchScore += similarity;
+                    matchCount++;
+                }
+            });
+
+            return {
+                ad,
+                score: matchCount > 0 ? matchScore / matchCount : 0
+            };
+        });
+
+        // Sort by score
+        matches.sort((a, b) => b.score - a.score);
+
+        // Display results
+        const container = document.getElementById('matchResultsContainer');
+        container.innerHTML = matches.slice(0, 6).map(({ ad, score }) => `
+            <div class="border-2 rounded-xl p-4 ${score > 70 ? 'border-green-500 bg-green-50' : score > 50 ? 'border-blue-500 bg-blue-50' : 'border-gray-300'}">
+                <div class="flex justify-between items-start mb-2">
+                    <h3 class="font-bold text-lg">${ad.brand}</h3>
+                    <span class="px-3 py-1 ${score > 70 ? 'bg-green-500' : score > 50 ? 'bg-blue-500' : 'bg-gray-500'} text-white rounded-full text-sm font-bold">
+                        ${score.toFixed(0)}%
+                    </span>
+                </div>
+                <p class="text-sm text-gray-600 mb-2">${ad.category}</p>
+                <p class="text-xs text-gray-500 mb-3">${ad.analysis.summary.substring(0, 100)}...</p>
+                <div class="flex gap-2 flex-wrap">
+                    ${(ad.analysis.top_attributes || []).slice(0, 3).map(attr => `
+                        <span class="px-2 py-1 bg-white border border-gray-300 text-xs rounded-full">${attr}</span>
+                    `).join('')}
+                </div>
+            </div>
+        `).join('');
+
+        document.getElementById('matchEmptyState').classList.add('hidden');
+        document.getElementById('matchResults').classList.remove('hidden');
+    }
+
+    // Export JSON
+    function exportJSON() {
+        if (ads.length === 0) {
+            alert('❌ Keine Daten zum Exportieren!');
+            return;
+        }
+
+        const dataStr = JSON.stringify(ads, null, 2);
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'werbung_analyse_' + new Date().toISOString().split('T')[0] + '.json';
+        a.click();
+        alert('✅ JSON exportiert! (' + ads.length + ' Werbungen)\n\nSchicke die Datei an deinen Kollaborations-Partner!');
+    }
+
+    // Import JSON with Merge
+    function importJSON() {
+        const file = document.getElementById('importFile').files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const imported = JSON.parse(e.target.result);
+                
+                if (!Array.isArray(imported)) {
+                    alert('❌ Ungültiges Format!');
+                    return;
+                }
+
+                // Merge: Nur neue Ads hinzufügen (nach ID)
+                const existingIds = new Set(ads.map(ad => ad.id));
+                const newAds = imported.filter(ad => !existingIds.has(ad.id));
+                
+                if (newAds.length === 0) {
+                    alert('ℹ️ Keine neuen Werbungen gefunden. Alle bereits vorhanden.');
+                    return;
+                }
+
+                if (confirm(`${newAds.length} neue Werbungen gefunden.\n\nAktuell: ${ads.length}\nNeu: ${newAds.length}\nGesamt: ${ads.length + newAds.length}\n\nImportieren und mergen?`)) {
+                    ads = [...ads, ...newAds];
+                    saveAds();
+                    alert('✅ Import erfolgreich!\n\n' + newAds.length + ' neue Werbungen hinzugefügt.\nGesamt: ' + ads.length);
+                }
+            } catch (error) {
+                alert('❌ Fehler beim Import: ' + error.message);
+            }
+            
+            document.getElementById('importFile').value = '';
+        };
+        reader.readAsText(file);
+    }
+
+    // Update UI
+    function updateUI() {
+        document.getElementById('adCount').textContent = ads.length;
+        
+        if (currentTab === 'list') {
+            updateListView();
+        } else if (currentTab === 'insights') {
+            updateInsights();
+        }
+    }
+
+    // Event Listeners
+    document.addEventListener('DOMContentLoaded', function() {
+        init();
+        
+        // API Modal
+        document.getElementById('saveKeyBtn').addEventListener('click', saveApiKey);
+        document.getElementById('skipKeyBtn').addEventListener('click', skipApiKey);
+        document.getElementById('showKeyBtn').addEventListener('click', showApiKeyModal);
+        
+        // Main Actions
+        document.getElementById('analyzeBtn').addEventListener('click', analyzeAd);
+        document.getElementById('exportBtn').addEventListener('click', exportJSON);
+        document.getElementById('clearBtn').addEventListener('click', clearAllData);
+        document.getElementById('importFile').addEventListener('change', importJSON);
+        
+        // Tabs
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+        });
+        
+        // Matching
+        document.getElementById('matchBtn').addEventListener('click', matchAds);
+    });
+</script>
+```
+
+</body>
+</html>
