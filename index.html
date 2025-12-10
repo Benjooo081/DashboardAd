@@ -34,10 +34,10 @@
             >
             
             <div class="flex gap-2">
-                <button onclick="saveApiKey()" class="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-700">
+                <button id="saveKeyBtn" class="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-700">
                     Speichern
                 </button>
-                <button onclick="skipApiKey()" class="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-bold hover:bg-gray-300">
+                <button id="skipKeyBtn" class="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-bold hover:bg-gray-300">
                     Demo-Modus
                 </button>
             </div>
@@ -71,15 +71,15 @@
         <div class="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 mb-4">
             <label class="flex-1 bg-green-500 text-white px-4 py-3 rounded-lg font-bold hover:bg-green-600 cursor-pointer text-center touch-card">
                 📥 Import
-                <input type="file" id="importFile" accept=".json" class="hidden" onchange="importJSON()">
+                <input type="file" id="importFile" accept=".json" class="hidden">
             </label>
-            <button onclick="exportJSON()" class="flex-1 bg-blue-500 text-white px-4 py-3 rounded-lg font-bold hover:bg-blue-600 touch-card">
+            <button id="exportBtn" class="flex-1 bg-blue-500 text-white px-4 py-3 rounded-lg font-bold hover:bg-blue-600 touch-card">
                 📤 Export
             </button>
-            <button onclick="showApiKeyModal()" class="flex-1 bg-purple-500 text-white px-4 py-3 rounded-lg font-bold hover:bg-purple-600 touch-card">
+            <button id="showKeyBtn" class="flex-1 bg-purple-500 text-white px-4 py-3 rounded-lg font-bold hover:bg-purple-600 touch-card">
                 🔑 API Key
             </button>
-            <button onclick="clearAllData()" class="flex-1 bg-red-500 text-white px-4 py-3 rounded-lg font-bold hover:bg-red-600 touch-card">
+            <button id="clearBtn" class="flex-1 bg-red-500 text-white px-4 py-3 rounded-lg font-bold hover:bg-red-600 touch-card">
                 🗑️ Alle löschen
             </button>
         </div>
@@ -106,7 +106,7 @@
 
         <textarea id="description" placeholder="Detaillierte Werbungsbeschreibung..." class="w-full px-4 py-3 border-2 rounded-lg mb-4 h-32 text-base"></textarea>
 
-        <button onclick="analyzeAd()" id="analyzeBtn" class="w-full bg-blue-600 text-white px-6 py-4 rounded-lg font-bold text-lg hover:bg-blue-700 touch-card">
+        <button id="analyzeBtn" class="w-full bg-blue-600 text-white px-6 py-4 rounded-lg font-bold text-lg hover:bg-blue-700 touch-card">
             🚀 Analysieren
         </button>
     </div>
@@ -401,7 +401,7 @@ JSON (kein Markdown):
         
         container.innerHTML = Object.entries(grouped).map(([cat, catAds]) => `
             <div class="border-2 rounded-xl mb-4 overflow-hidden">
-                <button onclick="toggleCategory('${cat.replace(/'/g, "\\'")}')" class="w-full flex justify-between items-center p-4 bg-gray-50 hover:bg-gray-100 active:bg-gray-200 touch-card">
+                <button data-category="${cat}" class="category-toggle w-full flex justify-between items-center p-4 bg-gray-50 hover:bg-gray-100 active:bg-gray-200 touch-card">
                     <div class="flex items-center gap-3">
                         <span class="text-2xl">${expandedCategories[cat] ? '📂' : '📁'}</span>
                         <span class="font-bold text-left">${cat}</span>
@@ -413,7 +413,7 @@ JSON (kein Markdown):
                     <div class="p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
                         ${catAds.map(ad => `
                             <div class="border-2 rounded-xl p-4 touch-card">
-                                <div onclick="selectAd(${ad.id})" class="cursor-pointer mb-3">
+                                <div data-ad-id="${ad.id}" class="ad-card cursor-pointer mb-3">
                                     <h3 class="font-bold text-lg">${ad.brand}</h3>
                                     <p class="text-sm text-gray-600">${ad.category}</p>
                                     <div class="flex items-center gap-2 mt-2">
@@ -428,7 +428,7 @@ JSON (kein Markdown):
                                         </div>
                                     ` : ''}
                                 </div>
-                                <button onclick="deleteAd(${ad.id})" class="w-full px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 font-bold touch-card">
+                                <button data-delete-id="${ad.id}" class="delete-btn w-full px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 font-bold touch-card">
                                     🗑️ Löschen
                                 </button>
                             </div>
@@ -437,6 +437,26 @@ JSON (kein Markdown):
                 ` : ''}
             </div>
         `).join('');
+        
+        // Add event listeners to dynamically created elements
+        document.querySelectorAll('.category-toggle').forEach(btn => {
+            btn.addEventListener('click', function() {
+                toggleCategory(this.dataset.category);
+            });
+        });
+        
+        document.querySelectorAll('.ad-card').forEach(card => {
+            card.addEventListener('click', function() {
+                selectAd(parseInt(this.dataset.adId));
+            });
+        });
+        
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                deleteAd(parseInt(this.dataset.deleteId));
+            });
+        });
     }
 
     // Export JSON
@@ -495,8 +515,26 @@ JSON (kein Markdown):
         reader.readAsText(file);
     }
 
-    // Init on load
-    init();
+    // Event Listeners Setup
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Dashboard lädt...');
+        
+        // Init
+        init();
+        
+        // API Modal Buttons
+        document.getElementById('saveKeyBtn').addEventListener('click', saveApiKey);
+        document.getElementById('skipKeyBtn').addEventListener('click', skipApiKey);
+        document.getElementById('showKeyBtn').addEventListener('click', showApiKeyModal);
+        
+        // Main Buttons
+        document.getElementById('analyzeBtn').addEventListener('click', analyzeAd);
+        document.getElementById('exportBtn').addEventListener('click', exportJSON);
+        document.getElementById('clearBtn').addEventListener('click', clearAllData);
+        document.getElementById('importFile').addEventListener('change', importJSON);
+        
+        console.log('✅ Event Listeners registriert');
+    });
 </script>
 ```
 
